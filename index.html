@@ -130,7 +130,6 @@
     <button onclick="selecionarCor()">🎨 Editar Cor</button>
     <button onclick="mandarFoto()">📤 Mandar Foto</button>
     <button onclick="alternarModo()">🌙/☀️ Modo</button>
-    <!-- NOVO BOTÃO PARA CALL -->
     <button onclick="fazerCall()">📞 Fazer Call</button>
 
     <input type="file" id="inputFoto" accept="image/*" />
@@ -154,7 +153,14 @@
     let contador = 2;
     let chatsSalvos = {};
     let chatAtual = "chat1";
-    chatsSalvos[chatAtual] = [];
+
+    // Recuperar do localStorage
+    if (localStorage.getItem("chatsSalvos")) {
+      chatsSalvos = JSON.parse(localStorage.getItem("chatsSalvos"));
+      chatAtual = Object.keys(chatsSalvos)[0] || "chat1";
+    } else {
+      chatsSalvos[chatAtual] = [];
+    }
 
     const chat = document.getElementById("chat");
     const autorSelect = document.getElementById("autor");
@@ -163,12 +169,12 @@
     const inputCor = document.getElementById("inputCor");
     const inputMensagemFoto = document.getElementById("inputMensagemFoto");
 
-    const palavrasProibidas = [
-      "porra", "filho da puta", "bosta", "merda", "caralho", "puta", "foda",
-      "hitler", "nazi", "nazista", "heil", "kkk", "suástica", "swas", "n4zi",
-      "fdp", "vsfd", "vsf", "vtnc", "prr", "pidichão","fds","gogogo","porco","vaca","cu","emojicat","paia",
-    ];
+    const palavrasProibidas = ["porra", "filho da puta", "bosta", "merda", "caralho", "puta", "foda", "hitler", "nazi", "nazista", "heil", "kkk", "suástica", "swas", "n4zi", "fdp", "vsfd", "vsf", "vtnc", "prr", "pidichão","fds","gogogo","porco","vaca","cu","emojicat","paia"];
     const emojisProibidos = ["👹", "👺", "😈", "👿"];
+
+    function salvarChatsLocal() {
+      localStorage.setItem("chatsSalvos", JSON.stringify(chatsSalvos));
+    }
 
     function censurarTexto(texto) {
       let censurado = texto;
@@ -219,6 +225,7 @@
     function salvarMensagem(chatId, mensagem) {
       if (!chatsSalvos[chatId]) chatsSalvos[chatId] = [];
       chatsSalvos[chatId].push(mensagem);
+      salvarChatsLocal();
     }
 
     function mostrarChats() {
@@ -233,6 +240,7 @@
       const nome = prompt("Nome do novo chat:");
       if (!nome) return;
       chatsSalvos[nome] = [];
+      salvarChatsLocal();
       carregarChat(nome);
     }
 
@@ -242,6 +250,7 @@
       chatsSalvos[novoNome] = chatsSalvos[chatAtual];
       delete chatsSalvos[chatAtual];
       chatAtual = novoNome;
+      salvarChatsLocal();
       alert("Chat renomeado com sucesso!");
     }
 
@@ -251,6 +260,7 @@
         delete chatsSalvos[chatAtual];
         const novoChatNome = Object.keys(chatsSalvos)[0] || "chat1";
         if (!chatsSalvos[novoChatNome]) chatsSalvos[novoChatNome] = [];
+        salvarChatsLocal();
         carregarChat(novoChatNome);
         alert("Chat removido com sucesso!");
       }
@@ -385,11 +395,10 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
-    // Função para exibir mensagem de call
     function exibirMensagemCall(chamadorId, atendenteId) {
       const msg = document.createElement("div");
       msg.classList.add("mensagem");
-      msg.style.backgroundColor = "#ffeb3b"; // cor amarela para chamada
+      msg.style.backgroundColor = "#ffeb3b";
       msg.style.alignSelf = "center";
       msg.style.textAlign = "center";
       msg.style.fontWeight = "bold";
@@ -405,19 +414,17 @@
       chat.scrollTop = chat.scrollHeight;
     }
 
-    // Função chamada pelo botão "Fazer Call"
     function fazerCall() {
       const chamador = prompt("Quem está ligando? (digite o nome exato)");
       if (!chamador) return;
       const atendente = prompt("Quem está atendendo? (digite o nome exato)");
       if (!atendente) return;
 
-      // Procura o ID da pessoa pelo nome
       const chamadorId = Object.keys(pessoas).find(id => pessoas[id].nome.toLowerCase() === chamador.toLowerCase());
       const atendenteId = Object.keys(pessoas).find(id => pessoas[id].nome.toLowerCase() === atendente.toLowerCase());
 
       if (!chamadorId || !atendenteId) {
-        alert("Uma ou ambas as pessoas não foram encontradas. Verifique os nomes e tente novamente.");
+        alert("Uma ou ambas as pessoas não foram encontradas.");
         return;
       }
 
@@ -455,8 +462,9 @@
     }
 
     atualizarSelect();
+    carregarChat(chatAtual);
     setInterval(atualizarDataHora, 1000);
     atualizarDataHora();
   </script>
 </body>
-    </html>
+  </html>
